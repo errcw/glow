@@ -45,7 +45,7 @@ func (pkg *Package) UniqueName() string {
 	return fmt.Sprintf("%s%s%s", pkg.API, pkg.Profile, version)
 }
 
-// GeneratePackage writes a Go package file.
+// GeneratePackage writes Go package files.
 func (pkg *Package) GeneratePackage() error {
 	dir := pkg.Dir()
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -65,6 +65,16 @@ func (pkg *Package) GeneratePackage() error {
 	}
 
 	return nil
+}
+
+// GenerateTracePackage writes a Go trace package file.
+func (pkg *Package) GenerateTracePackage() error {
+	dir := filepath.Join(pkg.Dir(), "trace")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	return pkg.generateFile("trace", dir)
 }
 
 func (pkg *Package) generateFile(file, dir string) error {

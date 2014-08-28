@@ -64,6 +64,7 @@ func generate(name string, args []string) {
 	remext := flags.String("remext", "$^", "Regular expression of extensions to exclude (e.g., .*)")
 	restrict := flags.String("restrict", "", "JSON file of symbols to restrict symbol generation")
 	lenientInit := flags.Bool("lenientInit", false, "When true missing functions do not fail Init")
+	trace := flags.Bool("trace", false, "When true generates a call tracing package")
 	flags.Parse(args)
 
 	version, err := ParseVersion(*ver)
@@ -93,24 +94,32 @@ func generate(name string, args []string) {
 	specs, rev := parseSpecifications(*xmlDir)
 	docs := parseDocumentation(*xmlDir)
 
-	var pkg *Package
-	for _, spec := range specs {
-		if spec.HasPackage(packageSpec) {
-			pkg = spec.ToPackage(packageSpec)
-			pkg.SpecRev = rev
-			docs.AddDocs(pkg)
-			if len(*restrict) > 0 {
-				performRestriction(pkg, *restrict)
-			}
-			if err := pkg.GeneratePackage(); err != nil {
-				log.Fatal("error generating package:", err)
-			}
+	var spec *Specification
+	for _, s := range specs {
+		if s.HasPackage(packageSpec) {
+			spec = s
 			break
 		}
 	}
-	if pkg == nil {
+	if spec == nil {
 		log.Fatal("unable to generate package:", packageSpec)
 	}
+
+	pkg := spec.ToPackage(packageSpec)
+	pkg.SpecRev = rev
+	docs.AddDocs(pkg)
+	if len(*restrict) > 0 {
+		performRestriction(pkg, *restrict)
+	}
+	if err := pkg.GeneratePackage(); err != nil {
+		log.Fatal("error generating package:", err)
+	}
+	if *trace {
+		if err := pkg.GenerateTracePackage(); err != nil {
+			log.Fatal("error generating trace package:", err)
+		}
+	}
+
 	log.Println("generated package in", pkg.Dir())
 }
 

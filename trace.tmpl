@@ -1,0 +1,22 @@
+//glow:keepspace
+// Glow automatically generated OpenGL binding: http://github.com/go-gl/glow
+
+package trace
+//glow:rmspace
+
+import (
+  pkg "github.com/go-gl/glow/{{.Dir}}"
+  "log"
+  "unsafe"
+)
+
+{{define "paramsPrint"}}{{range $i, $p := .}}{{if ne $i 0}}, {{end}}%v{{end}}{{end}}
+{{define "paramsGoDecl"}}{{range $i, $p := .}}{{if ne $i 0}}, {{end}}{{$p.GoName}} {{$p.Type.GoType}}{{end}}{{end}}
+{{define "paramsGoCall"}}{{range $i, $p := .}}{{if ne $i 0}}, {{end}}{{$p.GoName}}{{end}}{{end}}
+
+{{range .Functions}}
+func {{.GoName}}({{template "paramsGoDecl" .Parameters}}){{if not .Return.IsVoid}} {{.Return.GoType}}{{end}} {
+  log.Printf("{{.GoName}}({{template "paramsPrint" .Parameters}})\n"{{if ge (len .Parameters) 0}}, {{end}}{{template "paramsGoCall" .Parameters}})
+  {{if not .Return.IsVoid}}return {{end}}pkg.{{.GoName}}({{template "paramsGoCall" .Parameters}})
+}
+{{end}}
